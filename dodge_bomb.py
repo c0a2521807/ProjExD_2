@@ -13,6 +13,16 @@ DELTA = {pg.K_UP: (0, -5),
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+def check_bound(rct: pg.Rect) -> tuple[bool, bool]: 
+    """
+    引数：こうかとんrctまたは爆弾rct
+    戻り値：横方向、縦方向のはみ出し判定（画面内：True、画面外：False）"""
+    yoko,tate = True, True
+    if rct.left < 0 or WIDTH < rct.right:
+        yoko = False
+    if rct.top < 0 or HEIGHT < rct.bottom:
+        tate = False
+    return yoko, tate
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -25,9 +35,9 @@ def main():
     bb_img = pg.Surface((20, 20))
     pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
     bb_img.set_colorkey((0, 0, 0))
-    bb_rect = bb_img.get_rect()
-    bb_rect.centerx = random.randint(0, WIDTH)
-    bb_rect.centery = random.randint(0, HEIGHT)
+    bb_rec = bb_img.get_rect()
+    bb_rec.centerx = random.randint(0, WIDTH)
+    bb_rec.centery = random.randint(0, HEIGHT)
     vx = +5
     vy = +5 
 
@@ -46,9 +56,17 @@ def main():
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
         kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True):
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
-        bb_rect.move_ip(vx, vy)
-        screen.blit(bb_img, bb_rect)
+        bb_rec.move_ip(vx, vy)
+        yoko,tate=check_bound(bb_rec)
+        if not yoko: 
+            vx *= -1
+        if not tate:
+            vy *= -1
+
+        screen.blit(bb_img, bb_rec)
         pg.display.update()
         tmr += 1
         clock.tick(50)
