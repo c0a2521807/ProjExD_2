@@ -13,17 +13,17 @@ DELTA = {pg.K_UP: (0, -5),
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-def game_over(screen: pg.Surface) -> None:#ゲームオーバーの表示
-    ge_img = pg.Surface((WIDTH, HEIGHT))#透明度のある黒いSurfaceを作成
+def game_over(screen: pg.Surface) -> None:#　ゲームオーバーの表示
+    ge_img = pg.Surface((WIDTH, HEIGHT))#　透明度のある黒いSurfaceを作成
     pg.draw.rect(ge_img, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
     ge_img.set_alpha(150)
     screen.blit(ge_img, (0, 0))
 
-    font = pg.font.Font(None, 100)#フォントオブジェクトを作成
+    font = pg.font.Font(None, 100)#　フォントオブジェクトを作成
     text1 = font.render("GAME OVER", True, (255, 255, 255))
     text_rect = text1.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     
-    kk_img = pg.image.load("fig/8.png")#こうかとんの悲しい画像を読み込む
+    kk_img = pg.image.load("fig/8.png")#　こうかとんの悲しい画像を読み込む
     kk_rect1 = kk_img.get_rect(center=(WIDTH // 2 - 250, HEIGHT // 2))
     kk_rect2 = kk_img.get_rect(center=(WIDTH // 2 + 250, HEIGHT // 2))
 
@@ -35,9 +35,7 @@ def game_over(screen: pg.Surface) -> None:#ゲームオーバーの表示
     time.sleep(5)  
 
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
-    """
-    爆弾のSurfaceリストと加速度リストを生成する
-    """
+
     bb_imgs = []
     bb_accs = [a for a in range(1, 11)] # 加速度リスト 1〜10
     for r in range(1, 11):
