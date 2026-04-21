@@ -13,17 +13,17 @@ DELTA = {pg.K_UP: (0, -5),
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-def game_over(screen: pg.Surface) -> None:
-    ge_img = pg.Surface((WIDTH, HEIGHT))
+def game_over(screen: pg.Surface) -> None:#ゲームオーバーの表示
+    ge_img = pg.Surface((WIDTH, HEIGHT))#透明度のある黒いSurfaceを作成
     pg.draw.rect(ge_img, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
     ge_img.set_alpha(150)
     screen.blit(ge_img, (0, 0))
 
-    font = pg.font.Font(None, 100)
+    font = pg.font.Font(None, 100)#フォントオブジェクトを作成
     text1 = font.render("GAME OVER", True, (255, 255, 255))
     text_rect = text1.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     
-    kk_img = pg.image.load("fig/8.png")
+    kk_img = pg.image.load("fig/8.png")#こうかとんの悲しい画像を読み込む
     kk_rect1 = kk_img.get_rect(center=(WIDTH // 2 - 250, HEIGHT // 2))
     kk_rect2 = kk_img.get_rect(center=(WIDTH // 2 + 250, HEIGHT // 2))
 
@@ -33,6 +33,19 @@ def game_over(screen: pg.Surface) -> None:
 
     pg.display.update()
     time.sleep(5)  
+
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    爆弾のSurfaceリストと加速度リストを生成する
+    """
+    bb_imgs = []
+    bb_accs = [a for a in range(1, 11)] # 加速度リスト 1〜10
+    for r in range(1, 11):
+        bb_img = pg.Surface((20*r, 20*r))
+        bb_img.set_colorkey((0, 0, 0)) # 黒を透明化
+        pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
+        bb_imgs.append(bb_img)
+    return bb_imgs, bb_accs
 
 def check_bound(rct: pg.Rect) -> tuple[bool, bool]: 
     yoko, tate = True, True
@@ -50,13 +63,16 @@ def main():
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
     
-    bb_img = pg.Surface((20, 20))
-    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
-    bb_img.set_colorkey((0, 0, 0))
+    # --- 爆弾リストの初期化 ---
+    bb_imgs, bb_accs = init_bb_imgs()
+    tmr = 0
+    
+    # 初期の爆弾設定
+    vx, vy = +5, +5 
+    bb_img = bb_imgs[0]
     bb_rec = bb_img.get_rect()
     bb_rec.centerx = random.randint(0, WIDTH)
     bb_rec.centery = random.randint(0, HEIGHT)
-    vx, vy = +5, +5 
 
     clock = pg.time.Clock()
     
@@ -68,8 +84,10 @@ def main():
         if kk_rct.colliderect(bb_rec):
             game_over(screen)
             return  
+        
         screen.blit(bg_img, [0, 0]) 
 
+        # こうかとんの移動
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
         for key, mv in DELTA.items():
@@ -83,13 +101,26 @@ def main():
         
         screen.blit(kk_img, kk_rct)
         
-        bb_rec.move_ip(vx, vy)
+        # --- 爆弾の更新 (時間経過 tmr に応じる) ---
+        idx = min(tmr // 500, 9) # 500フレームごとに段階アップ
+        bb_img = bb_imgs[idx]
+        # サイズが変わったのでRectのサイズを更新（中心は維持）
+        curr_center = bb_rec.center
+        bb_rec = bb_img.get_rect()
+        bb_rec.center = curr_center
+        
+        # 加速度を適用した速度で移動
+        avx = vx * bb_accs[idx]
+        avy = vy * bb_accs[idx]
+        
+        bb_rec.move_ip(avx, avy)
         yoko, tate = check_bound(bb_rec)
         if not yoko: vx *= -1
         if not tate: vy *= -1
 
         screen.blit(bb_img, bb_rec)
         pg.display.update()
+        tmr += 1 # タイマーを加算
         clock.tick(50)
 
 if __name__ == "__main__":
